@@ -224,3 +224,142 @@ export const CoatModel = forwardRef<THREE.Group>(function CoatModel(_, ref) {
 })
 
 useGLTF.preload('/Models/HeroModels/converseShoe.glb')
+
+
+
+export const Global = forwardRef<THREE.Group>(function CoatModel(_, ref) {
+  const { nodes, materials } = useGLTF('/Models/LandingModels/glo.glb') as unknown as GLTFResult
+
+ return (
+    <group dispose={null}>
+      <group scale={0.01}>
+        <group rotation={[-Math.PI / 2, 0, 0]} scale={100}>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder_Globe_World_0.geometry}
+            material={materials.Globe_World}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder_Globe_World_0_1.geometry}
+            material={materials.Globe_World}
+          />
+        </group>
+      </group>
+    </group>
+  )
+})
+
+useGLTF.preload('/Models/LandingModels/glo.glb')
+
+
+
+
+export const G_cloth = forwardRef<THREE.Group>(function CoatModel(_, ref) {
+  const { nodes, materials } = useGLTF('/Models/LandingModels/gold_dress.glb') as unknown as GLTFResult
+
+ return (
+    <group  dispose={null}>
+      <group rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_2.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_3.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_4.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_5.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_6.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_7.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_8.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_9.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_10.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_11.geometry}
+          material={materials.material_0}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Object_12.geometry}
+          material={materials.material_0}
+        />
+      </group>
+    </group>
+  )
+})
+
+useGLTF.preload('/Models/LandingModels/gold_dress.glb')
+
+
+export const Inno = forwardRef<THREE.Group>(function CoatModel(_, ref) {
+  const { nodes, materials } = useGLTF('/Models/LandingModels/inno.glb') as unknown as GLTFResult
+
+ return (
+    <group dispose={null}>
+      <group scale={0.001}>
+        <group position={[0.25, 0.005, -5.923]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes['Afrecan_head_Material_#141_0'].geometry}
+            material={materials.Material_141}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes['Afrecan_head_Material_#141_0_1'].geometry}
+            material={materials.Material_141}
+          />
+        </group>
+      </group>
+    </group>
+  )
+})
+
+useGLTF.preload('/Models/LandingModels/inno.glb')
