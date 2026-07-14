@@ -2,6 +2,7 @@ import LandModel from "@/Components/Hero/LandModel";
 import Image from "next/image";
 import Intro from "@/Components/Selvé/Intro";
 import DeHouse from "@/Components/Selvé/DeHouse";
+import Philosophy from "@/Components/Selvé/Philosophy";
 
 // export default function Home() {
 //   return (
@@ -17,6 +18,7 @@ export default function Home() {
       <LandModel />
       <Intro/>
       {/* <DeHouse/> */}
+      <Philosophy/>
     </main>
   )
 }
