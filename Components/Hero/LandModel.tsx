@@ -738,6 +738,7 @@
 //   )
 // }
 
+
 "use client"
 import * as THREE from "three"
 
@@ -802,14 +803,7 @@ function AutoIntro({
 }
 
 /* ------------------------------------------------------------------ */
-/* STAGE 2 — scroll-scrubbed handoff into the next section.
-   Only mounts once the intro AND the hero content's own fade-in
-   have both finished, so the user never scrolls past unrevealed
-   content into the transition.
-
-   Motion: a quick early beat of rotate-RIGHT + rise-a-little,
-   then the rest of the scroll range is dominated by a continuous
-   zoom-in that carries through to the dissolve. */
+/* STAGE 2 — scroll-scrubbed handoff into the next section. */
 function ScrollHandoff({
   buildingRef,
   containerRef,
@@ -825,7 +819,6 @@ function ScrollHandoff({
     if (!buildingRef.current || !containerRef.current) return
     const building = buildingRef.current
 
-    // Starting point = exactly where AutoIntro's phase 2 ended.
     const startCam = { x: camera.position.x, y: camera.position.y, z: camera.position.z }
     const startPos = { x: building.position.x, y: building.position.y, z: building.position.z }
     const startScale = building.scale.x
@@ -843,16 +836,14 @@ function ScrollHandoff({
     }, 0)
     tl.to(camera.position, { x: startCam.x - 3, y: startCam.y + 1, z: startCam.z - 3, duration: 0.25 }, 0)
 
-    // ---- Continuous zoom (0.25 -> 1): dominant motion for the ----
-    // ---- rest of the scroll, carrying straight through to the ----
-    // ---- dissolve into the next section.
+    // ---- Continuous zoom (0.25 -> 1): dominant motion for the rest of the scroll ----
     tl.to(building.scale, {
       x: startScale * 5, y: startScale * 5, z: startScale * 5,
       duration: 0.75, ease: 'power1.in',
     }, 0.25)
     tl.to(building.position, { y: startPos.y + 22, duration: 0.75, ease: 'power1.in' }, 0.25)
     tl.to(camera.position, { z: startCam.z - 20, duration: 0.75, ease: 'power1.in' }, 0.25)
-    tl.to(building.rotation, { y: startRotY + 0.9, duration: 0.75 }, 0.25) // keep drifting right
+    tl.to(building.rotation, { y: startRotY + 0.9, duration: 0.75 }, 0.25)
 
     const st = ScrollTrigger.create({
       trigger: containerRef.current,
@@ -860,6 +851,7 @@ function ScrollHandoff({
       end: '+=100%',
       scrub: 1,
       pin: true,
+      pinSpacing: false, // <--- KEY FIX: REMOVES THE EMPTY SPACER
       anticipatePin: 1,
       onUpdate: (self) => {
         tl.progress(self.progress)
@@ -867,15 +859,10 @@ function ScrollHandoff({
       },
     })
 
-    // ✅ add this — forces lenis.resize() via LenisProvider's "refresh" listener,
-    // now that this (the last) pin actually exists in the DOM
-    // requestAnimationFrame(() => ScrollTrigger.refresh())
     requestAnimationFrame(() => {
       markScrollHandoffReady()
       ScrollTrigger.refresh()
-
     })
-
 
     return () => {
       st.kill()
@@ -887,12 +874,7 @@ function ScrollHandoff({
 }
 
 /* ------------------------------------------------------------------ */
-/* ProductImage — the big static photo layer that dominates each card,
-   matching the reference design's product photography. `bleed` (in %)
-   inflates the image past the card's own box so it crops tight or
-   off-edge against the panel border (the "photo spilling past the
-   glass" look seen in ATELION / MAIVON), while the card's own
-   overflow-hidden clips it cleanly at the rounded border. */
+/* ProductImage — unchanged */
 function ProductImage({
   src,
   position = 'center',
@@ -921,11 +903,7 @@ function ProductImage({
 }
 
 /* ------------------------------------------------------------------ */
-/* ModelThumb — the SMALL rendered 3D-model accent badge. In the
-   reference, the 3D element (spool of thread on SELVÉ, etc.) is a
-   small secondary circular accent near the text block — never the
-   card's dominant visual. The big product photo (ProductImage above)
-   carries that job instead. */
+/* ModelThumb — unchanged */
 function ModelThumb({
   top,
   left,
@@ -964,11 +942,7 @@ function ModelThumb({
 }
 
 /* ------------------------------------------------------------------ */
-/* ClothingCard — glass panel, big product photo, small 3D-model
-   accent, and text — always LEFT-ALIGNED / TOP-ANCHORED (including
-   the hero card), matching every card in the reference design. Only
-   the type scale differs between hero and compact variants, never
-   the alignment. */
+/* ClothingCard — unchanged */
 function ClothingCard({
   delay,
   isVisible,
@@ -993,11 +967,8 @@ function ClothingCard({
   category?: string
   tagline?: string
   variant?: 'hero' | 'compact'
-  /** Path under /public, e.g. '/images/products/selve-denim.jpg' */
   mainImageSrc?: string
-  /** CSS background-position, e.g. 'right center', 'bottom center' */
   mainImagePosition?: string
-  /** % oversize so the photo bleeds/crops against the panel edge */
   mainImageBleed?: number
   modelThumbTop?: string
   modelThumbLeft?: string
@@ -1008,13 +979,6 @@ function ClothingCard({
   const thumbSize = modelThumbSize ?? (isHero ? '15%' : '22%')
 
   return (
-    // Outer wrapper carries the reveal transition + the "standing glass"
-    // drop shadow. The shadow is applied via `filter`, not `box-shadow`,
-    // specifically so it can bleed outside the card even though the
-    // inner panel below is overflow-hidden (filters aren't clipped by
-    // an ancestor's own overflow the way box-shadow-on-a-clipped-child
-    // would be) — this is what gives the pane its sense of standing just
-    // off the floor rather than sitting flush like a flat sticker.
     <div
       className={`${sizeClassName} relative transition-all duration-700 ease-out ${
         isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'
@@ -1025,51 +989,22 @@ function ClothingCard({
           'drop-shadow(0 28px 34px rgba(0,0,0,0.55)) drop-shadow(0 10px 14px rgba(0,0,0,0.45))',
       }}
     >
-      {/* Inner pane — everything visual is clipped to this rounded rect. */}
       <div className="relative w-full h-full overflow-hidden rounded-[10px]">
-        {/* Glass panel — warm charcoal gradient (not pure black) so it
-            reads as backlit glass rather than a flat overlay, framed on
-            all four sides by a fine amber hairline border. */}
         <div className="absolute inset-0 rounded-[10px] bg-gradient-to-b from-[#2a2420]/70 via-[#171310]/80 to-black/90 border border-amber-400/25" />
-
-        {/* Inset hairline — a second, fainter border set slightly inside
-            the outer one, the way real glass/acrylic panes show a thin
-            reflected edge just inside their outer frame. */}
         <div className="absolute inset-[3px] rounded-[8px] border border-white/[0.06] pointer-events-none" />
-
-        {/* Left edge highlight — a soft vertical strip of light along the
-            left rim, as if catching ambient light along the pane's edge;
-            this reads as the glass having real thickness/standing depth
-            rather than being a painted-flat panel. */}
         <div className="absolute inset-y-0 left-0 w-[3px] bg-gradient-to-b from-amber-200/35 via-white/10 to-transparent pointer-events-none z-[1]" />
-
-        {/* Right edge — a fainter, cooler counter-highlight for balance. */}
         <div className="absolute inset-y-0 right-0 w-[2px] bg-gradient-to-b from-white/15 via-white/5 to-transparent pointer-events-none z-[1]" />
-
-        {/* Subtle top sheen — a thin lighter band along the upper edge to
-            suggest a glass/acrylic panel catching light, as in the reference. */}
         <div className="absolute inset-x-0 top-0 h-1/3 rounded-t-[10px] bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none z-[1]" />
-
-        {/* Diagonal glass streak — a faint angled band of light drifting
-            across the upper-left quadrant, the classic "reflection on
-            glass" cue, kept subtle so it never fights the product photo. */}
         <div className="absolute -top-1/4 left-[8%] w-[18%] h-[150%] rotate-[14deg] bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent pointer-events-none z-[1]" />
-
-        {/* Big product photograph — the dominant visual on every card,
-            positioned/bled per-card to match the reference's asymmetric
-            product placement (right-heavy, bottom-heavy, cropped, etc). */}
+        
         {mainImageSrc && (
           <ProductImage src={mainImageSrc} position={mainImagePosition} bleed={mainImageBleed} />
         )}
 
-        {/* Small rendered 3D-model accent — secondary, circular, sits
-            near the text block, distinct from the big product photo. */}
         <ModelThumb top={modelThumbTop} left={modelThumbLeft} size={thumbSize}>
           {children}
         </ModelThumb>
 
-        {/* Text content — z-10, always above the photo/model layers,
-            always left-aligned and top-anchored per the reference. */}
         {hasContent && (
           <div
             className={`
@@ -1121,9 +1056,6 @@ function ClothingCard({
           </div>
         )}
 
-        {/* Explore link — bottom-right, matching the reference's call
-            to action on every pane. pointer-events-auto so it's the one
-            interactive element on an otherwise decorative card. */}
         {hasContent && (
           <div
             className={`
@@ -1158,36 +1090,8 @@ function ClothingCard({
   )
 }
 
-
 /* ------------------------------------------------------------------ */
-/* Desktop mosaic — absolutely positioned cards inside a relative
-   frame with a LOCKED aspect ratio (measured from the reference at
-   ~1.55 : 1, width : height), so the whole grid scales as one unit
-   instead of the cards drifting out of proportion at different
-   viewport widths.
-
-   Card geometry was measured directly off the reference layout as
-   fractions of that frame:
-
-     • SELVÉ   — left 0%,  top 5%,  width 38%, height 95%  (bottom @ 100%)
-     • ATELION — left 41%, top 0%,  width 30%, height 41%  (bottom @ 41%)
-     • LURÈ    — left 41%, top 46%, width 30%, height 54%  (bottom @ 100%)
-     • MAIVON  — left 74%, top 40%, width 26%, height 60%  (bottom @ 100%)
-
-   That gives a consistent 3% horizontal gutter between columns, a 5%
-   vertical gutter between ATELION and LURÈ, and SELVÉ, LURÈ and MAIVON
-   all sharing the same floor line, matching the reference.
-
-   Per-card photo placement / bleed and 3D-thumb placement are tuned
-   to mirror the reference's asymmetric product photography:
-     • SELVÉ   — denim photo bottom-anchored, filling the lower ~2/3;
-                 small spool thumb top-left, beside the text.
-     • ATELION — jacket photo right-heavy with generous bleed so it
-                 crops off the card's right edge, mannequin-bust style;
-                 small thumb tucked at the left, mid-height.
-     • LURÈ    — bottle photo centered-low; small thumb bottom-left.
-     • MAIVON  — vase/candle photo right-heavy with bleed; small thumb
-                 bottom-left, mirroring ATELION's placement above it. */
+/* ClothingMosaic — unchanged */
 function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
   return (
     <div
@@ -1197,9 +1101,6 @@ function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
         aspectRatio: '1.55 / 1',
       }}
     >
-      {/* SELVÉ — hero card: left-aligned text/divider up top, denim
-          photo bottom-anchored filling the lower portion, small spool
-          thumbnail beside the icon. */}
       <div className="absolute" style={{ left: '0%', top: '5%', width: '38%', height: '95%' }}>
         <ClothingCard
           delay={0}
@@ -1220,8 +1121,6 @@ function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
         </ClothingCard>
       </div>
 
-      {/* ATELION — top-right, jacket photo cropped right-heavy against
-          the panel edge, small thumb at the left mid-height. */}
       <div className="absolute" style={{ left: '41%', top: '0%', width: '30%', height: '41%' }}>
         <ClothingCard
           delay={150}
@@ -1242,8 +1141,6 @@ function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
         </ClothingCard>
       </div>
 
-      {/* LURÈ — directly beneath ATELION, same column and width,
-          bottle photo centered-low, thumb bottom-left. */}
       <div className="absolute" style={{ left: '41%', top: '46%', width: '30%', height: '54%' }}>
         <ClothingCard
           delay={300}
@@ -1264,8 +1161,6 @@ function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
         </ClothingCard>
       </div>
 
-      {/* MAIVON — far-right column, the tallest of the three compacts,
-          vase/candle photo cropped right-heavy, thumb bottom-left. */}
       <div className="absolute" style={{ left: '74%', top: '40%', width: '26%', height: '60%' }}>
         <ClothingCard
           delay={450}
@@ -1289,11 +1184,6 @@ function ClothingMosaic({ isVisible }: { isVisible: boolean }) {
   )
 }
 
-/* ------------------------------------------------------------------ */
-// Time (ms) it takes for all hero content — title, cards, button —
-// to finish fading/sliding in after introDone flips true. Computed
-// from the longest transition below: button delay 600ms + duration
-// 700ms = 1300ms. Rounded up with a little headroom.
 const CONTENT_REVEAL_MS = 1500
 
 export default function LandModel() {
@@ -1303,13 +1193,8 @@ export default function LandModel() {
   const [readyForScroll, setReadyForScroll] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  // Hero content appears immediately once the model's intro
-  // animation finishes — no scroll dependency.
   const showContent = introDone
 
-  // The scroll-driven handoff only takes over once that content
-  // has actually finished appearing, so it's never possible to
-  // scroll into the transition before everything has shown up.
   useEffect(() => {
     if (!introDone) return
     const timer = setTimeout(() => setReadyForScroll(true), CONTENT_REVEAL_MS)
@@ -1318,14 +1203,20 @@ export default function LandModel() {
 
   const dissolving = progress > 0.92
   const fadeOpacity = dissolving ? 1 - (progress - 0.92) / 0.08 : 1
+  // Gapless Handoff: Calculate dynamic Z-Index.
+  // If opacity is too low (fade complete), drop Z-Index to 0 so Philosophy can take over.
+  const containerZIndex = fadeOpacity <= 0.02 ? 0 : 20;
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden z-20"
-      style={{ pointerEvents: fadeOpacity <= 0.02 ? 'none' : 'auto' }}
+      className="relative w-full h-screen overflow-hidden"
+      style={{ 
+        pointerEvents: fadeOpacity <= 0.02 ? 'none' : 'auto',
+        zIndex: containerZIndex // <--- Handoff logic
+      }}
     >
-      <Navbar />
+      {/* <Navbar /> */}
       <div
         style={{ opacity: Math.max(fadeOpacity, 0) }}
         className="absolute inset-0 bg-black"
@@ -1366,32 +1257,12 @@ export default function LandModel() {
           </group>
         </Canvas>
 
-        {/*
-          Content layer.
-          - Mobile (< md): stacked & centered — label, heading, button,
-            then cards wrap in a row below (same as the original layout).
-          - Desktop (>= md): two columns — text block left-aligned on
-            the left, asymmetric card mosaic on the right — matching
-            the reference design.
-
-          Background: the lobby/entrance photo (place it in /public,
-          e.g. /public/images/atelier-entrance.jpg, and update the path
-          below to match) sits behind this div's content as a CSS
-          background — NOT touching the Canvas/HouseMdel underneath.
-          A dark gradient is layered on top of the image in the same
-          background-image so the text stays readable without needing
-          extra overlay elements.
-        */}
         <div
           className="absolute inset-0 z-10 flex flex-col md:flex-row items-center justify-center md:justify-between gap-10 md:gap-8 px-6 md:px-16 lg:px-24 pointer-events-none bg-cover bg-center"
           style={{
             backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.2) 75%), linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 40%), url('/images/atelier-entrance.jpg')`,
           }}
         >
-
-          {/* Decorative section-progress rail — purely visual, matches
-              the thin dot/line indicator running down the left edge
-              of the reference design. */}
           <div
             className={`
               hidden lg:flex flex-col items-center gap-3 self-center shrink-0
@@ -1405,7 +1276,6 @@ export default function LandModel() {
             <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
           </div>
 
-          {/* Left column — text content */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-md md:max-w-lg lg:max-w-xl shrink md:shrink-[2]">
             <p
               className={`
@@ -1474,10 +1344,6 @@ export default function LandModel() {
               </span>
             </button>
 
-            {/* Mobile-only card row — hidden on desktop, where the
-                mosaic (below) takes over instead. Same photo/thumb
-                treatment as the desktop mosaic cards, just at the
-                default compact card size. */}
             <div
               className={`
                 order-6 flex md:hidden flex-wrap justify-center gap-3 mt-8
@@ -1535,7 +1401,6 @@ export default function LandModel() {
             </div>
           </div>
 
-          {/* Right column — desktop-only asymmetric mosaic */}
           <div className="hidden md:block pointer-events-auto shrink-0">
             <ClothingMosaic isVisible={showContent} />
           </div>
