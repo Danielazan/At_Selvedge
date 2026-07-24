@@ -2325,4 +2325,4 @@ export const PerfumeList = forwardRef<THREE.Group>(function PerfumeList(_, ref) 
   )
 })
 
-useGLTF.preload('//Models/LandingModels/aesop_perfumes.glb')
+useGLTF.preload('/Models/LandingModels/aesop_perfumes.glb')
