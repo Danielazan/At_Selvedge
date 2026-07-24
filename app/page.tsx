@@ -25,6 +25,7 @@ import Navbar from "@/Components/Navbar/Navbar";
 import FourHouses from "@/Components/Selvé/FourHouses";
 import PersistentClothCanvas from "@/Components/Scene/PersistentCloth";
 import Houseshowcase from "@/Components/Selvé/Houseshowcase";
+import AutumnWinter from "@/Components/Editorial/AutumnWinter"
 
 export default function Home() {
   return (
@@ -51,6 +52,8 @@ export default function Home() {
       <PersistentClothCanvas />
 
       <Houseshowcase/>
+
+      <AutumnWinter/>
     </main>
   )
 }
