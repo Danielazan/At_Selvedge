@@ -26,6 +26,7 @@ import FourHouses from "@/Components/Selvé/FourHouses";
 import PersistentClothCanvas from "@/Components/Scene/PersistentCloth";
 import Houseshowcase from "@/Components/Selvé/Houseshowcase";
 import AutumnWinter from "@/Components/Editorial/AutumnWinter"
+import Journal from "@/Components/Journal/Journal";
 
 export default function Home() {
   return (
@@ -52,7 +53,7 @@ export default function Home() {
       <PersistentClothCanvas />
 
       <Houseshowcase/>
-
+       <Journal /> 
       <AutumnWinter/>
     </main>
   )
